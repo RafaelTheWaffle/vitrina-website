@@ -6,7 +6,7 @@
 <title>Vitrina — Smash burgers · Tel Aviv</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Allison&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Space+Mono:wght@400;700&family=Archivo+Black&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Allison&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Space+Mono:wght@400;700&family=Archivo+Black&family=Secular+One&family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
   :root{
@@ -415,6 +415,59 @@
   .loc-pick__opt:hover .go{gap:10px}
   .loc-pick__opt .go .arrow{display:inline-block;transition:transform .2s ease}
   .loc-pick__opt:hover .go .arrow{transform:translateX(3px)}
+
+  /* LANGUAGE TOGGLE */
+  .nav__lang{
+    display:inline-flex;align-items:center;
+    border:1.5px solid var(--ink);border-radius:999px;
+    overflow:hidden;
+    font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+    flex-shrink:0;
+  }
+  .nav__lang button{
+    padding:5px 11px;min-height:32px;min-width:34px;
+    background:transparent;border:none;cursor:pointer;
+    font:inherit;color:var(--ink);
+    transition:background .15s,color .15s;
+  }
+  .nav__lang button.lang-active{background:var(--ink);color:var(--paper)}
+  .nav__lang__sep{width:1.5px;background:var(--ink);align-self:stretch;flex-shrink:0}
+
+  /* HEBREW TYPOGRAPHY — fonts that render Hebrew glyphs */
+  :lang(he) .hero__h1,
+  :lang(he) .section-head h2,
+  :lang(he) .card__title,
+  :lang(he) .loc__name,
+  :lang(he) .story h2,
+  :lang(he) .press__q .q,
+  :lang(he) .gallery__head h2,
+  :lang(he) .news h2,
+  :lang(he) .banner h3,
+  :lang(he) .footer__tag,
+  :lang(he) .loc-pick__head h3,
+  :lang(he) .nav__mobile-menu__links a,
+  :lang(he) .menu__tab,
+  :lang(he) .vstrip__track,
+  :lang(he) .marquee__track{font-family:"Secular One",sans-serif;letter-spacing:0}
+  :lang(he) body,
+  :lang(he) .hero__sub,
+  :lang(he) .card__desc,
+  :lang(he) .story__body,
+  :lang(he) .loc__info,
+  :lang(he) .banner p,
+  :lang(he) .news p{font-family:"Heebo",sans-serif}
+  :lang(he) .mono,
+  :lang(he) .section-head .eyebrow,
+  :lang(he) .card__media .tag,
+  :lang(he) .hero__eyebrow,
+  :lang(he) .loc__info .k,
+  :lang(he) .footer__col h4,
+  :lang(he) .hero__meta .item .k,
+  :lang(he) .press__q .cite{font-family:"Heebo",sans-serif;letter-spacing:0}
+  /* RTL: flip the decorative line in section eyebrows */
+  :lang(he) .section-head .eyebrow::before{margin-left:0;margin-right:0}
+  /* RTL: stamp stays visually centred */
+  :lang(he) .story__photos .stamp{font-family:"Secular One",sans-serif;letter-spacing:0}
 
   /* MOBILE NAV MENU */
   .nav__mobile-menu{
@@ -1072,6 +1125,7 @@ function TweakButton({ label, onClick, secondary = false }) {
 // ─── app ──────────────────────────────────────────────────────────────────────
 
 const { useState, useEffect, useMemo, useRef } = React;
+const LangCtx = React.createContext("en");
 
 const TWEAK_DEFAULTS = {
   "heroVariant": "cursive",
@@ -1079,6 +1133,129 @@ const TWEAK_DEFAULTS = {
   "accent": "peach",
   "showMarquee": true,
   "menuLayout": "grid"
+};
+
+// ── Translations ──────────────────────────────────────────────────────────────
+const COPY = {
+  en: {
+    // marquee
+    m:["Smash burgers","Tel Aviv since 2018","Open late","Buttermilk fried chicken","Two locations","Pretentious VITRINA","No frozen anything","Black sesame brioche"],
+    // nav
+    navMenu:"Menu", navSpots:"Spots", navStory:"Story", navGallery:"The wall", navContact:"Contact", navOrder:"Order online",
+    // hero
+    heroEyebrow:"Tel Aviv · Florentin & Rothschild · Open today",
+    heroL1:"Burgers", heroL2:"without", heroL3:"apologies",
+    heroBadge:"Now serving · Nashville Hot", heroTag:"Wrapped in gingham",
+    heroQ:"“Best smash in the city. It’s not even close.”", heroQCite:"— Time Out Tel Aviv",
+    heroSub:"We grind brisket and short rib every morning, smash it on a 280°C plancha, slap it on a black-sesame brioche, and hand it over before the cheese stops dripping. Two spots in Tel Aviv. One way to eat them — fast.",
+    heroCta1:"See the menu", heroCta2:"Find a spot",
+    heroSince:"Since", heroPatties:"Patties / week", heroHot:"Hot levels", heroFrozenK:"Frozen anything", heroFrozenV:"Never",
+    // vstrip
+    vstrip:"Pretentious VITRINA",
+    // menu
+    menuEyebrow:"02 · The Menu",
+    menuH2:"Everything", menuH2s:"we make.",
+    menuBody:"Built in-house, ground daily, finished by hand. Pick a category — ready in 12 minutes.",
+    tabs:{Burgers:"Burgers",Chicken:"Chicken",Veggie:"Veggie",Sides:"Sides",Drinks:"Drinks"},
+    // banner
+    banH3a:"Hot week? Skip the line.", banH3b:"Order ahead.",
+    banP:"Pickup in 12 mins. Delivery in 25 across central Tel Aviv. Friday lunch (12:00–16:00) gets wild — order from your phone.",
+    banCta:"Order on Wolt",
+    // locations
+    locEyebrow:"03 · Find us",
+    locH2a:"Two spots.", locH2s:"One religion.",
+    locBody:"We’ve kept it small on purpose. Florentin is the OG room — concrete, neon, twelve stools. Rothschild’s the bigger sibling with a patio.",
+    locOpen:"Open · til 23:30",
+    locWhere:"Where", locPhone:"Phone", locHours:"Hours", locNote:"Note",
+    locDir:"Get directions",
+    // story
+    storyEyebrow:"04 · The story",
+    storyH2a:"Started in a window.", storyH2b:"Now we have", storyH2s:"two of them.",
+    storyP1:"“Vitrina” means “the window” — and that’s literally where this place started. A 90cm hatch on Frenkel St. in Florentin, one plancha, two stools on the sidewalk, and a queue that wouldn’t quit.",
+    storyP2:"We’re still doing the same things we were doing then. Brisket and short rib ground every morning. Buns baked twice a day with black sesame on top. A sauce list that fits on a napkin. No truffle. No gold leaf. No frozen.",
+    storyP3:"In 2023 we opened a second spot on Rothschild. Same plancha temperature. Same buns. Bigger room, smaller queue. Come hungry. Tip your line cook.",
+    storySig:"— Yossi & Maya", storyCredit:"Founders / line cooks / dishwashers some Saturdays",
+    storyStamp:["Est.","2018","· TLV ·"],
+    // press
+    pressEye:"People who liked it",
+    pressQ1:"“The best smash burger in Tel Aviv — and it’s not even close.”", pressC1:"— Time Out · 2024",
+    pressQ2:"“A burger so good it almost makes the Friday queue worth it. Almost.”", pressC2:"— Haaretz · weekend",
+    pressQ3:"“Vitrina is doing for the smash burger what shawarma did for the shawarma.”", pressC3:"— Globes · food",
+    // gallery
+    galleryEye:"05 · The wall", galleryH2:"Stuff our regulars", galleryH2s:"post.",
+    galleryCta:"Tag us @vitrina.tlv",
+    // newsletter
+    newsEye:"06 · The list",
+    newsH2a:"Get the drops.", newsH2s:"No spam, just sauce.",
+    newsP:"Specials, new sandwiches, sunday brunch nights, and the occasional free fries. One email a month. We promise we’re not annoying.",
+    newsPlaceholder:"hello@your-email.com", newsCta:"Sign me up",
+    newsConfirm:"✓ You’re in. Check your inbox.",
+    newsDm:"Or DM us @vitrina.tlv · We answer fast",
+    // footer
+    footerTag:"Burgers without apologies.",
+    fH1:"Spots", fLoc1:"Florentin — Frenkel 18", fLoc2:"Rothschild — Blvd. 76",
+    fCatering:"Catering & events", fPrivate:"Private dining",
+    fH2:"Eat", fMenu:"Full menu", fAllergens:"Allergens & nutrition", fGifts:"Gift cards", fJobs:"Work with us",
+    fH3:"Follow", fIG:"Instagram", fTT:"TikTok", fFB:"Facebook",
+    fPress:"For press: press@vitrina.co.il",
+    fCopy:"© 2026 Vitrina TLV · All rights reserved",
+    fMade:"Made in Florentin with too much music",
+    // location picker
+    lpTitle:"Pick your spot", lpSub:"We’ll open Wolt for your location", lpCta:"Order on Wolt",
+  },
+  he: {
+    m:["סמאש בורגרס","תל אביב מ-2018","פתוח עד מאוחר","עוף בחמאת חלב","שני סניפים","ויטרינה המתנשאת","ללא שום דבר קפוא","לחמנייה שומשום שחור"],
+    navMenu:"תפריט", navSpots:"סניפים", navStory:"הסיפור", navGallery:"הקיר", navContact:"צור קשר", navOrder:"להזמין",
+    heroEyebrow:"תל אביב · פלורנטין & רוטשילד · פתוח היום",
+    heroL1:"בורגרים", heroL2:"בלי", heroL3:"התנצלויות",
+    heroBadge:"מוגש עכשיו · Nashville Hot", heroTag:"עטוף בגינגהם",
+    heroQ:"“הסמאש הכי טוב בעיר. פשוט אין תחרות.”", heroQCite:"— Time Out תל אביב",
+    heroSub:"אנחנו טוחנים בריסקט ושורט ריב כל בוקר, מועכים על פלנצ'ה ב-280°, שמים על לחמניית שומשום שחור ומוסרים לפני שהגבינה מפסיקה לטפטף. שני סניפים בתל אביב. דרך אחת לאכול אותם — מהר.",
+    heroCta1:"לתפריט המלא", heroCta2:"מצא סניף",
+    heroSince:"מאז", heroPatties:"פטיז / שבוע", heroHot:"רמות חריפות", heroFrozenK:"משהו קפוא", heroFrozenV:"אף פעם",
+    vstrip:"ויטרינה המתנשאת",
+    menuEyebrow:"02 · התפריט",
+    menuH2:"כל מה", menuH2s:"שאנחנו מכינים.",
+    menuBody:"נעשה בבית, נטחן כל יום, גמור ביד. בחר קטגוריה — ההזמנה מוכנה תוך 12 דקות.",
+    tabs:{Burgers:"בורגרים",Chicken:"עוף",Veggie:"צמחוני",Sides:"תוספות",Drinks:"שתייה"},
+    banH3a:"שבוע לוהט? קפוץ על התור.", banH3b:"הזמן מראש.",
+    banP:"איסוף תוך 12 דקות. משלוח תוך 25 דקות במרכז תל אביב. ארוחת צהריים ביום שישי (12:00–16:00) הולכת לאיבוד — הזמן מהטלפון.",
+    banCta:"הזמן בוולט",
+    locEyebrow:"03 · מצא אותנו",
+    locH2a:"שני סניפים.", locH2s:"דת אחת.",
+    locBody:"שמרנו על זה קטן בכוונה. פלורנטין הוא החדר המקורי — בטון, ניאון, שתים עשרה שרפרפים. רוטשילד הוא האח הגדול עם פטיו.",
+    locOpen:"פתוח · עד 23:30",
+    locWhere:"כתובת", locPhone:"טלפון", locHours:"שעות", locNote:"הערה",
+    locDir:"ניווט",
+    storyEyebrow:"04 · הסיפור",
+    storyH2a:"התחלנו בחלון.", storyH2b:"עכשיו יש לנו", storyH2s:"שניים.",
+    storyP1:"ויטרינה פירושה \"החלון\" — וכך פשוטו כמשמעו התחיל המקום הזה. פתח של 90 ס\"מ ברחוב פרנקל בפלורנטין, פלנצ'ה אחת, שני שרפרפים על המדרכה ותור שלא נגמר.",
+    storyP2:"עדיין עושים אותם הדברים שעשינו אז. בריסקט ושורט ריב נטחנים כל בוקר. לחמניות נאפות פעמיים ביום עם שומשום שחור. רשימת רטבים שנכנסת על מפית. ללא כמהין, ללא עלי זהב, ללא קפוא.",
+    storyP3:"ב-2023 פתחנו סניף שני ברוטשילד. אותה טמפרטורת פלנצ'ה. אותן לחמניות. חדר גדול יותר, תור קצר יותר. תבואו רעבים. תשאירו טיפ לטבח.",
+    storySig:"— יוסי ומאיה", storyCredit:"מייסדים / טבחים / מדיחי כלים בחלק מהשבתות",
+    storyStamp:["מאז","2018","· ת״א ·"],
+    pressEye:"אנשים שאהבו",
+    pressQ1:"\"הסמאש בורגר הכי טוב בתל אביב — ואין אפילו תחרות.\"", pressC1:"— Time Out · 2024",
+    pressQ2:"\"בורגר שכל כך טוב שכמעט שווה את התור של יום שישי. כמעט.\"", pressC2:"— הארץ · סוף שבוע",
+    pressQ3:"\"ויטרינה עושים לסמאש בורגר מה שהשווארמה עשתה לשווארמה.\"", pressC3:"— גלובס · אוכל",
+    galleryEye:"05 · הקיר", galleryH2:"מה שהקבועים שלנו", galleryH2s:"מעלים.",
+    galleryCta:"תייגו אותנו @vitrina.tlv",
+    newsEye:"06 · הרשימה",
+    newsH2a:"קבלו עדכונים.", newsH2s:"בלי ספאם, רק רטבים.",
+    newsP:"מנות מיוחדות, כריכים חדשים, לילות ברנץ' ביום ראשון ולפעמים גם צ'יפס בחינם. אימייל אחד בחודש. אנחנו מבטיחים שלא נהיה מעצבנים.",
+    newsPlaceholder:"שלום@האימייל-שלך.com", newsCta:"הכניסו אותי",
+    newsConfirm:"✓ נכנסת לרשימה. בדוק את תיבת הדואר.",
+    newsDm:"או שלח לנו DM @vitrina.tlv · עונים מהר",
+    footerTag:"בורגרים בלי התנצלויות.",
+    fH1:"סניפים", fLoc1:"פלורנטין — פרנקל 18", fLoc2:"רוטשילד — שד' 76",
+    fCatering:"קייטרינג ואירועים", fPrivate:"ארוחות פרטיות",
+    fH2:"לאכול", fMenu:"תפריט מלא", fAllergens:"אלרגנים ותזונה", fGifts:"כרטיסי מתנה", fJobs:"הצטרפו לצוות",
+    fH3:"עקבו אחרינו", fIG:"אינסטגרם", fTT:"טיקטוק", fFB:"פייסבוק",
+    fPress:"לעיתונות: press@vitrina.co.il",
+    fCopy:"© 2026 ויטרינה ת\"א · כל הזכויות שמורות",
+    fMade:"נוצר בפלורנטין עם יותר מדי מוזיקה",
+    lpTitle:"בחר את הסניף", lpSub:"נפתח את וולט לפי הסניף שלך", lpCta:"הזמן בוולט",
+  }
 };
 
 const MENU = {
@@ -1163,24 +1340,21 @@ const LOCATIONS = [
       ["Friday", "11:30 — 16:30"],
       ["Saturday", "19:00 — 01:30"],
     ],
-    note: "Reservations Sun–Thu via the link. Patio open all summer.",
+    note: "Patio open all summer.",
     photo: "photos/p06.jpg",
   },
 ];
 
 function Marquee(){
-  const items = [
-    "Smash burgers", "Tel Aviv since 2018", "Open late", "Buttermilk fried chicken",
-    "Two locations", "Pretentious VITRINA", "No frozen anything", "Black sesame brioche",
-    "Smash burgers", "Tel Aviv since 2018", "Open late", "Buttermilk fried chicken",
-    "Two locations", "Pretentious VITRINA", "No frozen anything", "Black sesame brioche",
-  ];
+  const lang = React.useContext(LangCtx);
+  const c = COPY[lang];
+  const items = [...c.m, ...c.m];
   return (
     <div className="marquee">
       <div className="marquee__track">
-        {items.map((t,i) => (
+        {items.map((txt,i) => (
           <span key={i} style={{display:"inline-flex",alignItems:"center",gap:38}}>
-            <span>{t}</span>
+            <span>{txt}</span>
             <span className="marquee__dot"></span>
           </span>
         ))}
@@ -1205,14 +1379,16 @@ const WOLT_LOCATIONS = [
 ];
 
 function LocationPicker({ open, onClose }) {
+  const lang = React.useContext(LangCtx);
+  const c = COPY[lang];
   if (!open) return null;
   return (
     <div className="loc-pick-bg" onClick={onClose}>
       <div className="loc-pick" onClick={(e) => e.stopPropagation()}>
         <div className="loc-pick__head">
           <div>
-            <h3>Pick your spot</h3>
-            <p>We'll open Wolt for your location</p>
+            <h3>{c.lpTitle}</h3>
+            <p>{c.lpSub}</p>
           </div>
           <button className="loc-pick__close" onClick={onClose}>✕</button>
         </div>
@@ -1222,7 +1398,7 @@ function LocationPicker({ open, onClose }) {
               <span className="num">{loc.num}</span>
               <span className="name">{loc.name}</span>
               <span className="addr" style={{whiteSpace:"pre-line"}}>{loc.addr}</span>
-              <span className="go">Order on Wolt <span className="arrow">→</span></span>
+              <span className="go">{c.lpCta} <span className="arrow">→</span></span>
             </a>
           ))}
         </div>
@@ -1231,15 +1407,23 @@ function LocationPicker({ open, onClose }) {
   );
 }
 
-function Nav({onCart, cartCount, onOrder}){
+function Nav({onOrder, lang, setLang}){
+  const c = COPY[lang];
   const [menuOpen, setMenuOpen] = useState(false);
   const close = () => setMenuOpen(false);
 
-  // Lock body scroll while menu is open
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [menuOpen]);
+
+  const LangToggle = () => (
+    <div className="nav__lang" aria-label="Switch language">
+      <button className={lang==="en" ? "lang-active" : ""} onClick={() => setLang("en")}>EN</button>
+      <span className="nav__lang__sep" aria-hidden="true"/>
+      <button className={lang==="he" ? "lang-active" : ""} onClick={() => setLang("he")}>HE</button>
+    </div>
+  );
 
   return (
     <>
@@ -1247,21 +1431,18 @@ function Nav({onCart, cartCount, onOrder}){
         <div className="wrap nav__inner">
           <a href="#top" className="nav__logo" onClick={close}>Vitrina</a>
           <div className="nav__links">
-            <a href="#menu">Menu</a>
-            <a href="#locations">Spots</a>
-            <a href="#story">Story</a>
-            <a href="#gallery">The wall</a>
-            <a href="#contact">Contact</a>
+            <a href="#menu">{c.navMenu}</a>
+            <a href="#locations">{c.navSpots}</a>
+            <a href="#story">{c.navStory}</a>
+            <a href="#gallery">{c.navGallery}</a>
+            <a href="#contact">{c.navContact}</a>
           </div>
           <div className="nav__right">
+            <LangToggle />
             <a href="https://www.instagram.com/vitrinush/?hl=en" target="_blank" rel="noopener noreferrer" className="nav__cart" aria-label="Instagram" title="@vitrinush">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
             </a>
-            <button className="btn btn--red" style={{padding:"10px 16px",fontSize:12}} onClick={onOrder}>Order online <span className="arrow">→</span></button>
-            <button className="nav__cart" onClick={onCart} aria-label="Cart">
-              🛒
-              {cartCount > 0 && <span className="badge">{cartCount}</span>}
-            </button>
+            <button className="btn btn--red" style={{padding:"10px 16px",fontSize:12}} onClick={onOrder}>{c.navOrder} <span className="arrow">→</span></button>
             <button className="nav__burger" aria-label={menuOpen ? "Close menu" : "Open menu"} onClick={() => setMenuOpen(o => !o)}>
               {menuOpen ? "✕" : "≡"}
             </button>
@@ -1275,20 +1456,17 @@ function Nav({onCart, cartCount, onOrder}){
           <button className="nav__mobile-menu__close" onClick={close} aria-label="Close menu">✕</button>
         </div>
         <div className="nav__mobile-menu__links">
-          <a href="#menu" onClick={close}>Menu</a>
-          <a href="#locations" onClick={close}>Spots</a>
-          <a href="#story" onClick={close}>Story</a>
-          <a href="#gallery" onClick={close}>The wall</a>
-          <a href="#contact" onClick={close}>Contact</a>
+          <a href="#menu" onClick={close}>{c.navMenu}</a>
+          <a href="#locations" onClick={close}>{c.navSpots}</a>
+          <a href="#story" onClick={close}>{c.navStory}</a>
+          <a href="#gallery" onClick={close}>{c.navGallery}</a>
+          <a href="#contact" onClick={close}>{c.navContact}</a>
         </div>
         <div className="nav__mobile-menu__foot">
           <button className="btn btn--red" style={{flex:1,justifyContent:"center"}} onClick={() => { close(); onOrder(); }}>
-            Order online <span className="arrow">→</span>
+            {c.navOrder} <span className="arrow">→</span>
           </button>
-          <button className="nav__cart" onClick={() => { close(); onCart(); }} aria-label="Cart" style={{background:"rgba(250,243,224,.1)"}}>
-            🛒
-            {cartCount > 0 && <span className="badge">{cartCount}</span>}
-          </button>
+          <LangToggle />
         </div>
       </div>
     </>
@@ -1296,48 +1474,46 @@ function Nav({onCart, cartCount, onOrder}){
 }
 
 function Hero(){
+  const lang = React.useContext(LangCtx);
+  const c = COPY[lang];
   return (
     <section className="hero wrap" id="top">
       <div className="hero__grid">
         <div className="hero__left">
           <div className="hero__eyebrow">
             <span className="dot"></span>
-            Tel Aviv · Florentin &amp; Rothschild · Open today
+            {c.heroEyebrow}
           </div>
           <h1 className="hero__h1">
-            Burgers<br/>
-            <span style={{color:"var(--red)"}}>without</span><br/>
-            <span className="crossed">apologies</span><span className="it">.</span>
+            {c.heroL1}<br/>
+            <span style={{color:"var(--red)"}}>{c.heroL2}</span><br/>
+            <span className="crossed">{c.heroL3}</span><span className="it">.</span>
           </h1>
-          <p className="hero__sub">
-            We grind brisket and short rib every morning, smash it on a 280°C plancha, slap it on a black-sesame brioche, and hand it over before the cheese stops dripping. Two spots in Tel Aviv. One way to eat them — fast.
-          </p>
+          <p className="hero__sub">{c.heroSub}</p>
           <div className="hero__cta">
-            <a href="#menu" className="btn btn--red">See the menu <span className="arrow">→</span></a>
-            <a href="#locations" className="btn btn--ghost">Find a spot</a>
+            <a href="#menu" className="btn btn--red">{c.heroCta1} <span className="arrow">→</span></a>
+            <a href="#locations" className="btn btn--ghost">{c.heroCta2}</a>
           </div>
           <div className="hero__meta">
-            <div className="item"><span className="k">Since</span><span className="v">2018</span></div>
-            <div className="item"><span className="k">Patties / week</span><span className="v">~4,800</span></div>
-            <div className="item"><span className="k">Hot levels</span><span className="v">1 → 4</span></div>
-            <div className="item"><span className="k">Frozen anything</span><span className="v">Never</span></div>
+            <div className="item"><span className="k">{c.heroSince}</span><span className="v">2018</span></div>
+            <div className="item"><span className="k">{c.heroPatties}</span><span className="v">~4,800</span></div>
+            <div className="item"><span className="k">{c.heroHot}</span><span className="v">1 → 4</span></div>
+            <div className="item"><span className="k">{c.heroFrozenK}</span><span className="v">{c.heroFrozenV}</span></div>
           </div>
         </div>
-
         <div className="hero__right">
-          <div className="hero__photo hero__photo--main"
-               style={{backgroundImage:"url('photos/p04.jpg')"}}>
-            <span className="badge-have">Now serving · Nashville Hot</span>
+          <div className="hero__photo hero__photo--main" style={{backgroundImage:"url('photos/p04.jpg')"}}>
+            <span className="badge-have">{c.heroBadge}</span>
             <span className="overlay-script">Vitrina</span>
           </div>
           <div className="hero__bottom">
             <div className="hero__photo hero__photo--side" style={{backgroundImage:"url('photos/p19.jpg')"}}>
-              <span className="tag">Wrapped in gingham</span>
+              <span className="tag">{c.heroTag}</span>
             </div>
             <div className="hero__quote">
-              <div className="q">"Best smash in&nbsp;the city. It's not even close."</div>
+              <div className="q">{c.heroQ}</div>
               <div className="stars">★★★★★</div>
-              <div className="cite">— Time Out Tel Aviv</div>
+              <div className="cite">{c.heroQCite}</div>
             </div>
           </div>
         </div>
@@ -1347,7 +1523,8 @@ function Hero(){
 }
 
 function VStrip(){
-  const txt = ["Pretentious VITRINA","Pretentious VITRINA","Pretentious VITRINA","Pretentious VITRINA","Pretentious VITRINA","Pretentious VITRINA"];
+  const lang = React.useContext(LangCtx);
+  const txt = Array(6).fill(COPY[lang].vstrip);
   return (
     <div className="vstrip">
       <div className="vstrip__track">
@@ -1358,7 +1535,9 @@ function VStrip(){
   );
 }
 
-function MenuSection({onAdd}){
+function MenuSection(){
+  const lang = React.useContext(LangCtx);
+  const c = COPY[lang];
   const cats = Object.keys(MENU);
   const [active, setActive] = useState(cats[0]);
   return (
@@ -1366,18 +1545,18 @@ function MenuSection({onAdd}){
       <div className="wrap">
         <div className="section-head">
           <div className="left">
-            <div className="eyebrow">02 · The Menu</div>
-            <h2>Everything <span className="script">we make.</span></h2>
+            <div className="eyebrow">{c.menuEyebrow}</div>
+            <h2>{c.menuH2} <span className="script">{c.menuH2s}</span></h2>
           </div>
-          <div className="right">
-            Built in-house, ground daily, finished by hand. Pick a category — your order ends up in the bag in 12 minutes flat.
-          </div>
+          <div className="right">{c.menuBody}</div>
         </div>
 
         <div className="menu__tabs" role="tablist">
-          {cats.map(c => (
-            <button key={c} role="tab" aria-selected={active===c}
-                    className="menu__tab" onClick={()=>setActive(c)}>{c}</button>
+          {cats.map(cat => (
+            <button key={cat} role="tab" aria-selected={active===cat}
+                    className="menu__tab" onClick={()=>setActive(cat)}>
+              {c.tabs[cat]}
+            </button>
           ))}
         </div>
 
@@ -1395,7 +1574,6 @@ function MenuSection({onAdd}){
                 <div className="card__desc">{item.desc}</div>
                 <div className="card__foot">
                   <span className="meta">{item.kcal}</span>
-                  <button className="add" onClick={()=>onAdd(item)}>＋ Add to bag</button>
                 </div>
               </div>
             </article>
@@ -1404,11 +1582,10 @@ function MenuSection({onAdd}){
 
         <div className="banner">
           <div>
-            <h3>Hot week? Skip the line.<br/><span className="script">Order ahead.</span></h3>
-            <p>Pickup in 12 mins. Delivery in 25 across central Tel Aviv. Friday lunch (12:00–16:00) gets wild — book the bag from your phone.</p>
+            <h3>{c.banH3a}<br/><span className="script">{c.banH3b}</span></h3>
+            <p>{c.banP}</p>
             <div style={{marginTop:24,display:"flex",gap:10,flexWrap:"wrap"}}>
-              <a className="btn btn--red" href="#menu">Order pickup <span className="arrow">→</span></a>
-              <a className="btn btn--ghost" href="#locations">Reserve a table</a>
+              <a className="btn btn--red" href="#locations">{c.banCta} <span className="arrow">→</span></a>
             </div>
           </div>
           <div className="banner__photo" style={{backgroundImage:"url('photos/p17.jpg')"}}></div>
@@ -1419,33 +1596,32 @@ function MenuSection({onAdd}){
 }
 
 function Locations(){
+  const lang = React.useContext(LangCtx);
+  const c = COPY[lang];
   return (
     <section className="locations" id="locations">
       <div className="wrap">
         <div className="section-head">
           <div className="left">
-            <div className="eyebrow">03 · Find us</div>
-            <h2>Two spots. <span className="script">One religion.</span></h2>
+            <div className="eyebrow">{c.locEyebrow}</div>
+            <h2>{c.locH2a} <span className="script">{c.locH2s}</span></h2>
           </div>
-          <div className="right">
-            We've kept it small on purpose. Florentin is the OG room — concrete, neon, twelve stools. Rothschild's the bigger sibling with a patio.
-          </div>
+          <div className="right">{c.locBody}</div>
         </div>
-
         <div className="loc__grid">
           {LOCATIONS.map(loc => (
             <article key={loc.num} className="loc">
               <div className="loc__photo" style={{backgroundImage:`url('${loc.photo}')`}}>
                 <div className="num">№ {loc.num}</div>
-                <div className="open"><span className="dot"></span> Open · til 23:30</div>
+                <div className="open"><span className="dot"></span> {c.locOpen}</div>
               </div>
               <div className="loc__body">
                 <h3 className="loc__name">{loc.name}</h3>
                 <span className="loc__nick">{loc.nick}</span>
                 <div className="loc__info">
-                  <span className="k">Where</span><span className="v">{loc.addr}</span>
-                  <span className="k">Phone</span><span className="v">{loc.phone}</span>
-                  <span className="k">Hours</span>
+                  <span className="k">{c.locWhere}</span><span className="v">{loc.addr}</span>
+                  <span className="k">{c.locPhone}</span><span className="v">{loc.phone}</span>
+                  <span className="k">{c.locHours}</span>
                   <span className="v">
                     {loc.hours.map(([d,h],i) => (
                       <div key={i} style={{display:"flex",justifyContent:"space-between",gap:18}}>
@@ -1454,11 +1630,10 @@ function Locations(){
                       </div>
                     ))}
                   </span>
-                  <span className="k">Note</span><span className="v" style={{color:"rgba(250,243,224,.7)",fontStyle:"italic"}}>{loc.note}</span>
+                  <span className="k">{c.locNote}</span><span className="v" style={{color:"rgba(250,243,224,.7)",fontStyle:"italic"}}>{loc.note}</span>
                 </div>
                 <div className="loc__cta">
-                  <a className="btn btn--cream" href="#">Get directions <span className="arrow">→</span></a>
-                  <a className="btn" style={{background:"transparent",border:"1.5px solid var(--paper)",color:"var(--paper)"}} href="#">Reserve</a>
+                  <a className="btn btn--cream" href="#">{c.locDir} <span className="arrow">→</span></a>
                 </div>
               </div>
             </article>
@@ -1470,6 +1645,8 @@ function Locations(){
 }
 
 function Story(){
+  const lang = React.useContext(LangCtx);
+  const c = COPY[lang];
   return (
     <section className="story" id="story">
       <div className="wrap">
@@ -1477,27 +1654,21 @@ function Story(){
           <div className="story__photos">
             <div className="p p1" style={{backgroundImage:"url('photos/p12.jpg')"}}></div>
             <div className="p p2" style={{backgroundImage:"url('photos/p20.jpg')"}}></div>
-            <div className="stamp">Est.<br/>2018<br/>· TLV ·</div>
+            <div className="stamp">{c.storyStamp[0]}<br/>{c.storyStamp[1]}<br/>{c.storyStamp[2]}</div>
           </div>
           <div>
             <div className="eyebrow" style={{fontFamily:"Space Mono,monospace",fontSize:11,letterSpacing:".16em",textTransform:"uppercase",color:"var(--red)",display:"flex",alignItems:"center",gap:10}}>
               <span style={{width:24,height:1.5,background:"var(--red)"}}></span>
-              04 · The story
+              {c.storyEyebrow}
             </div>
-            <h2 style={{marginTop:12}}>Started in a window.<br/>Now we have <span className="script">two of them.</span></h2>
+            <h2 style={{marginTop:12}}>{c.storyH2a}<br/>{c.storyH2b} <span className="script">{c.storyH2s}</span></h2>
             <div className="story__body">
-              <p>
-                <em>Vitrina</em> means "the window" — and that's literally where this place started. A 90cm hatch on Frenkel St. in Florentin, one plancha, two stools on the sidewalk, and a queue that wouldn't quit.
-              </p>
-              <p>
-                We're still doing the same things we were doing then. Brisket and short rib ground every morning. Buns baked twice a day with black sesame on top. A sauce list that fits on a napkin. No truffle. No gold leaf. No frozen.
-              </p>
-              <p>
-                In 2023 we opened a second spot on Rothschild. Same plancha temperature. Same buns. Bigger room, smaller queue. Come hungry. Tip your line cook.
-              </p>
+              <p>{c.storyP1}</p>
+              <p>{c.storyP2}</p>
+              <p>{c.storyP3}</p>
             </div>
-            <span className="story__sig">— Yossi &amp; Maya</span>
-            <span className="story__credit">Founders / line cooks / dishwashers some Saturdays</span>
+            <span className="story__sig">{c.storySig}</span>
+            <span className="story__credit">{c.storyCredit}</span>
           </div>
         </div>
       </div>
@@ -1506,27 +1677,29 @@ function Story(){
 }
 
 function Press(){
+  const lang = React.useContext(LangCtx);
+  const c = COPY[lang];
   return (
     <section className="press">
       <div className="wrap">
         <div style={{textAlign:"center",marginBottom:36}}>
-          <div className="mono" style={{color:"var(--ink-2)"}}>People who liked it</div>
+          <div className="mono" style={{color:"var(--ink-2)"}}>{c.pressEye}</div>
         </div>
         <div className="press__grid">
           <div className="press__q">
-            <div className="q">"The best smash burger in&nbsp;Tel Aviv — and it's not even close."</div>
+            <div className="q">{c.pressQ1}</div>
             <div className="stars">★★★★★</div>
-            <div className="cite">— Time Out · 2024</div>
+            <div className="cite">{c.pressC1}</div>
           </div>
           <div className="press__q">
-            <div className="q">"A burger so good it almost makes the Friday queue worth it. Almost."</div>
+            <div className="q">{c.pressQ2}</div>
             <div className="stars">★★★★★</div>
-            <div className="cite">— Haaretz · weekend</div>
+            <div className="cite">{c.pressC2}</div>
           </div>
           <div className="press__q">
-            <div className="q">"Vitrina is doing for the smash burger what shawarma did for the shawarma."</div>
+            <div className="q">{c.pressQ3}</div>
             <div className="stars">★★★★★</div>
-            <div className="cite">— Globes · food</div>
+            <div className="cite">{c.pressC3}</div>
           </div>
         </div>
       </div>
@@ -1535,6 +1708,8 @@ function Press(){
 }
 
 function Gallery(){
+  const lang = React.useContext(LangCtx);
+  const c = COPY[lang];
   const cells = [
     { p:"photos/p02.jpg", col:"span 2", row:"span 2", tag:"Nashville Hot"},
     { p:"photos/p03.jpg", col:"span 2", row:"span 1", tag:"Vitrina fries"},
@@ -1552,18 +1727,18 @@ function Gallery(){
       <div className="wrap">
         <div className="gallery__head">
           <div>
-            <div className="eyebrow" style={{fontFamily:"Space Mono,monospace",fontSize:11,letterSpacing:".16em",textTransform:"uppercase",color:"var(--red)"}}>05 · The wall</div>
-            <h2>Stuff our regulars <span className="script">post.</span></h2>
+            <div className="eyebrow" style={{fontFamily:"Space Mono,monospace",fontSize:11,letterSpacing:".16em",textTransform:"uppercase",color:"var(--red)"}}>{c.galleryEye}</div>
+            <h2>{c.galleryH2} <span className="script">{c.galleryH2s}</span></h2>
           </div>
-          <a className="btn" href="#">Tag us @vitrina.tlv <span className="arrow">→</span></a>
+          <a className="btn" href="#">{c.galleryCta} <span className="arrow">→</span></a>
         </div>
         <div className="gallery__grid">
-          {cells.map((c,i) => (
+          {cells.map((cell,i) => (
             <div key={i} className="gallery__cell"
-                 style={{ backgroundImage:`url('${c.p}')`,
-                          gridColumn: c.col,
-                          gridRow: c.row }}>
-              <span className="tag">{c.tag}</span>
+                 style={{ backgroundImage:`url('${cell.p}')`,
+                          gridColumn: cell.col,
+                          gridRow: cell.row }}>
+              <span className="tag">{cell.tag}</span>
             </div>
           ))}
         </div>
@@ -1573,30 +1748,32 @@ function Gallery(){
 }
 
 function Newsletter(){
+  const lang = React.useContext(LangCtx);
+  const c = COPY[lang];
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   return (
     <section className="news" id="contact">
       <div className="wrap news__inner">
         <div>
-          <div className="mono" style={{color:"rgba(250,243,224,.7)"}}>06 · The list</div>
-          <h2 style={{marginTop:10}}>Get the drops.<br/><span className="script">No spam, just sauce.</span></h2>
-          <p>Specials, new sandwiches, sunday brunch nights, and the occasional free fries. One email a month. We promise we're not annoying.</p>
+          <div className="mono" style={{color:"rgba(250,243,224,.7)"}}>{c.newsEye}</div>
+          <h2 style={{marginTop:10}}>{c.newsH2a}<br/><span className="script">{c.newsH2s}</span></h2>
+          <p>{c.newsP}</p>
         </div>
         <div>
           {!sent ? (
             <form className="news__form" onSubmit={(e) => { e.preventDefault(); if (email.includes("@")) setSent(true); }}>
-              <input type="email" placeholder="hello@your-email.com"
+              <input type="email" placeholder={c.newsPlaceholder}
                      value={email} onChange={(e)=>setEmail(e.target.value)} required />
-              <button type="submit">Sign me up</button>
+              <button type="submit">{c.newsCta}</button>
             </form>
           ) : (
             <div style={{padding:"18px 22px",background:"rgba(0,0,0,.25)",borderRadius:999,fontFamily:"Anton",fontSize:24,textTransform:"uppercase",letterSpacing:".02em",border:"2px solid var(--paper)"}}>
-              ✓ You're in. Check your inbox.
+              {c.newsConfirm}
             </div>
           )}
           <div className="mono" style={{marginTop:14,color:"rgba(250,243,224,.6)"}}>
-            Or DM us @vitrina.tlv · We answer fast
+            {c.newsDm}
           </div>
         </div>
       </div>
@@ -1605,106 +1782,51 @@ function Newsletter(){
 }
 
 function Footer(){
+  const lang = React.useContext(LangCtx);
+  const c = COPY[lang];
   return (
     <footer className="footer">
       <div className="wrap">
         <div className="footer__grid">
           <div>
             <span className="footer__logo">Vitrina</span>
-            <div className="footer__tag">Burgers<br/><span style={{color:"var(--red)"}}>without</span> apologies.</div>
+            <div className="footer__tag">{c.footerTag}</div>
           </div>
           <div className="footer__col">
-            <h4>Spots</h4>
-            <a href="#locations">Florentin — Frenkel 18</a>
-            <a href="#locations">Rothschild — Blvd. 76</a>
-            <a href="#">Catering &amp; events</a>
-            <a href="#">Private dining</a>
+            <h4>{c.fH1}</h4>
+            <a href="#locations">{c.fLoc1}</a>
+            <a href="#locations">{c.fLoc2}</a>
+            <a href="#">{c.fCatering}</a>
+            <a href="#">{c.fPrivate}</a>
           </div>
           <div className="footer__col">
-            <h4>Eat</h4>
-            <a href="#menu">Full menu</a>
-            <a href="#">Allergens &amp; nutrition</a>
-            <a href="#">Gift cards</a>
-            <a href="#">Work with us</a>
+            <h4>{c.fH2}</h4>
+            <a href="#menu">{c.fMenu}</a>
+            <a href="#">{c.fAllergens}</a>
+            <a href="#">{c.fGifts}</a>
+            <a href="#">{c.fJobs}</a>
           </div>
           <div className="footer__col">
-            <h4>Follow</h4>
-            <a href="https://www.instagram.com/vitrinush/?hl=en" target="_blank" rel="noopener noreferrer">Instagram</a>
-            <a href="#">TikTok</a>
-            <a href="https://www.facebook.com/vitrinush/?_rdr" target="_blank" rel="noopener noreferrer">Facebook</a>
-            <p style={{marginTop:14,fontSize:13,color:"rgba(250,243,224,.5)"}}>For press: press@vitrina.co.il</p>
+            <h4>{c.fH3}</h4>
+            <a href="https://www.instagram.com/vitrinush/?hl=en" target="_blank" rel="noopener noreferrer">{c.fIG}</a>
+            <a href="#">{c.fTT}</a>
+            <a href="https://www.facebook.com/vitrinush/?_rdr" target="_blank" rel="noopener noreferrer">{c.fFB}</a>
+            <p style={{marginTop:14,fontSize:13,color:"rgba(250,243,224,.5)"}}>{c.fPress}</p>
           </div>
         </div>
         <div className="footer__bottom">
-          <span>© 2026 Vitrina TLV · All rights reserved</span>
-          <span>Made in Florentin with too much music</span>
+          <span>{c.fCopy}</span>
+          <span>{c.fMade}</span>
         </div>
       </div>
     </footer>
   );
 }
 
-function Cart({open, items, onClose, onInc, onDec}){
-  const [mode, setMode] = useState("pickup");
-  if (!open) return null;
-  const subtotal = items.reduce((s,i)=> s + i.qty * i.price, 0);
-  const fee = mode === "delivery" ? 14 : 0;
-  return (
-    <div className="modal-bg" onClick={onClose}>
-      <aside className="modal" onClick={(e)=>e.stopPropagation()}>
-        <div className="modal__head">
-          <h3>Your bag <span style={{color:"var(--red)"}}>({items.reduce((s,i)=>s+i.qty,0)})</span></h3>
-          <button className="modal__close" onClick={onClose}>✕</button>
-        </div>
-        <div className="modal__body">
-          {items.length === 0 ? (
-            <div className="empty">
-              <span className="script">Hungry?</span>
-              <p>Your bag's empty. The Butler Cheese Burger is right over there →</p>
-            </div>
-          ) : items.map(it => (
-            <div key={it.id} className="line">
-              <div className="line__img" style={{backgroundImage:`url('${it.photo}')`}}></div>
-              <div className="line__info">
-                <div className="line__name">{it.name}</div>
-                <div className="line__price">₪{it.price} × {it.qty} = ₪{it.qty*it.price}</div>
-              </div>
-              <div className="line__qty">
-                <button onClick={()=>onDec(it.id)}>−</button>
-                <span>{it.qty}</span>
-                <button onClick={()=>onInc(it.id)}>+</button>
-              </div>
-            </div>
-          ))}
-        </div>
-        {items.length > 0 && (
-          <div className="modal__foot">
-            <div className="opts">
-              <button className="opt" aria-pressed={mode==="pickup"} onClick={()=>setMode("pickup")}>Pickup · 12 min</button>
-              <button className="opt" aria-pressed={mode==="delivery"} onClick={()=>setMode("delivery")}>Delivery · 25 min</button>
-            </div>
-            {fee > 0 && (
-              <div style={{display:"flex",justifyContent:"space-between",fontFamily:"Space Mono,monospace",fontSize:12,letterSpacing:".08em",textTransform:"uppercase",color:"var(--ink-2)",marginBottom:8}}>
-                <span>Delivery</span><span>₪{fee}</span>
-              </div>
-            )}
-            <div className="total">
-              <span>Total</span>
-              <span className="price">₪{subtotal + fee}</span>
-            </div>
-            <button className="btn btn--red" style={{width:"100%",justifyContent:"center"}}>Checkout · 30 sec <span className="arrow">→</span></button>
-          </div>
-        )}
-      </aside>
-    </div>
-  );
-}
-
 function App(){
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
-  const [cartOpen, setCartOpen] = useState(false);
   const [orderOpen, setOrderOpen] = useState(false);
-  const [cart, setCart] = useState([]);
+  const [lang, setLang] = useState("en");
 
   useEffect(()=>{
     document.documentElement.style.setProperty("--red", t.vitrinaRed);
@@ -1712,35 +1834,24 @@ function App(){
     document.documentElement.style.setProperty("--pink", accentMap[t.accent] || t.accent);
   }, [t.vitrinaRed, t.accent]);
 
-  const add = (item) => {
-    setCart(prev => {
-      const found = prev.find(x => x.id === item.id);
-      if (found) return prev.map(x => x.id === item.id ? {...x, qty: x.qty+1} : x);
-      return [...prev, {...item, qty:1}];
-    });
-    const cartBtn = document.querySelector(".nav__cart");
-    if (cartBtn) {
-      cartBtn.animate([{transform:"scale(1)"},{transform:"scale(1.18)"},{transform:"scale(1)"}], {duration:280, easing:"ease-out"});
-    }
-  };
-  const inc = (id) => setCart(prev => prev.map(x => x.id===id ? {...x, qty:x.qty+1} : x));
-  const dec = (id) => setCart(prev => prev.map(x => x.id===id ? {...x, qty:Math.max(0,x.qty-1)} : x).filter(x => x.qty>0));
-  const cartCount = cart.reduce((s,i)=>s+i.qty,0);
+  useEffect(()=>{
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === "he" ? "rtl" : "ltr";
+  }, [lang]);
 
   return (
-    <>
+    <LangCtx.Provider value={lang}>
       {t.showMarquee && <Marquee />}
-      <Nav onCart={()=>setCartOpen(true)} cartCount={cartCount} onOrder={()=>setOrderOpen(true)} />
+      <Nav lang={lang} setLang={setLang} onOrder={()=>setOrderOpen(true)} />
       <Hero />
       <VStrip />
-      <MenuSection onAdd={add} />
+      <MenuSection />
       <Locations />
       <Story />
       <Press />
       <Gallery />
       <Newsletter />
       <Footer />
-      <Cart open={cartOpen} items={cart} onClose={()=>setCartOpen(false)} onInc={inc} onDec={dec} />
       <LocationPicker open={orderOpen} onClose={()=>setOrderOpen(false)} />
 
       <TweaksPanel>
@@ -1755,7 +1866,7 @@ function App(){
         <TweakToggle label="Top marquee" value={t.showMarquee}
                      onChange={(v)=>setTweak("showMarquee", v)} />
       </TweaksPanel>
-    </>
+    </LangCtx.Provider>
   );
 }
 
